@@ -83,3 +83,41 @@ for i, item in enumerate(data):
             st.success(item['english'])
             
     st.divider()
+
+import streamlit as st
+
+st.set_page_config(page_title="대학영어 워크북", layout="wide")
+
+# 사이드바에 페이지 이동 메뉴 생성
+page = st.sidebar.radio("원하는 단원을 선택하세요", ["UNIT 01 Virus", "UNIT 02 Ancient Egypt"])
+
+# 1페이지: Virus
+if page == "UNIT 01 Virus":
+    st.title("📖 UNIT 01 Virus")
+    # 기존 Virus 코드 배치
+
+# 2페이지: Ancient Egypt
+elif page == "UNIT 02 Ancient Egypt":
+    st.title("📖 UNIT 02 Ancient Egypt")
+    # Ancient Egypt 데이터 및 채점 코드 배치
+
+# UNIT 02 Ancient Egypt 데이터
+unit02_data = [
+    {
+        "part": "Part 1",
+        "korean": (
+            "고대 이집트는 기원전 3100년경에 일어난 인상적인 문명이었다. 기원전"
+            " 332년에 마케도니아인들이 장악할 때까지 고대 이집트는 북아프리카와"
+            " 인근 지역의 주요 강국으로 남아 있었다. 이 문명은 주로 나일강의"
+            " 홍수 패턴을 농업에 최대한 활용했기 때문에 번성했다. 예측 가능한"
+            " 홍수와 비옥한 계곡의 통제된 관개로 인해 잉여 농작물이"
+            " 생산되었고, 이로 인해 인구가 증가하고 사회는 더욱 복잡해질 수"
+            " 있었다. 이집트인들은 환경과 자원을 성공적으로 관리함으로써 예술,"
+            " 지식, 그리고 건축에서 풍성한 문화를 확립했으며 이는 이후 수 세기"
+            " 동안 세계에 영향을 미치게 되었다."
+        ),
+        "english": (
+            "Ancient Egypt was an impressive civilization that arose around"
+            " 3100 B.C.E. It remained a major power in North Africa and nearby"
+            " regions until the Macedonians took over in 332
+
