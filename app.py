@@ -1,12 +1,36 @@
-import streamlit as st
 import difflib
 import re
+import streamlit as st
 
+# 1. 페이지 설정 (코드 최상단에 1회만 호출)
 st.set_page_config(page_title="대학영어 워크북 영작하기", layout="wide")
-st.title("📖 대학영어 워크북: 해석 보고 영작하기 (UNIT 01 Virus)")
 
-# 데이터 정의 (Part 1 ~ Part 4 전체 본문)
-data = [
+# 2. 텍스트 비교 및 HTML 생성 함수
+def get_diff_html(correct, user):
+    """정답과 사용자 입력을 비교하여 틀린 부분을 HTML로 반환"""
+    correct_words = re.findall(r"\S+", correct)
+    user_words = re.findall(r"\S+", user)
+    
+    diff = list(difflib.ndiff(correct_words, user_words))
+    
+    res = []
+    for token in diff:
+        word = token[2:]
+        if token.startswith('  '):
+            # 일치하는 부분 (기본 검정색)
+            res.append(f"<span style='color: black;'>{word}</span>")
+        elif token.startswith('- '):
+            # 빠뜨린 부분 (파란색 밑줄)
+            res.append(f"<span style='color: blue; text-decoration: underline;' title='빠뜨린 단어'>{word}</span>")
+        elif token.startswith('+ '):
+            # 오답/잘못 추가된 부분 (빨간색 취소선)
+            res.append(f"<span style='color: red; text-decoration: line-through;' title='틀린 단어'>{word}</span>")
+            
+    html_str = " ".join(res)
+    return f'<div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; line-height: 1.6; font-size: 16px;">{html_str}</div>'
+
+# 3. 데이터 정의
+unit01_data = [
     {
         "part": "Part 1",
         "korean": "바이러스는 유기체의 살아 있는 세포 내에서만 복제되는 초미세한 전염성 물질이다. 바이러스는 동물과 식물에서부터 미생물까지 모든 생명체를 감염시킨다. 바이러스 연구는 바이러스학이라고 하며, 이는 미생물학의 일부이다. 바이러스는 단백질 보호막으로 둘러싸인 유전 물질로 구성되어 있어 세균보다 죽이기가 더 어렵다. 바이러스 감염으로 인한 가벼운 질병의 경우, 질병이 자연스럽게 진행되도록 하는 것이 최선의 전략이다. 세균 감염과 싸우도록 고안된 항생제가 바이러스에 대해서는 효능이 부족하다는 것을 인식하는 것이 중요하다. 항생제는 바이러스를 죽이지 않으며 항생제를 사용하는 것은 항생제 내성으로 이어질 뿐이다.",
@@ -29,95 +53,57 @@ data = [
     }
 ]
 
-def get_diff_html(correct, user):
-    """정답과 사용자 입력을 비교하여 틀린 부분을 HTML로 반환"""
-    # 공백 기준으로 단어 분리
-    correct_words = re.findall(r"\S+", correct)
-    user_words = re.findall(r"\S+", user)
-    
-    # 단어 단위 비교
-    diff = list(difflib.ndiff(correct_words, user_words))
-    
-    res = []
-    for token in diff:
-        word = token[2:]
-        if token.startswith('  '):
-            # 일치하는 부분 (기본 검정색)
-            res.append(f"<span style='color: black;'>{word}</span>")
-        elif token.startswith('- '):
-            # 빠뜨린 부분 (정답에는 있으나 입력에는 없음) -> 파란색 밑줄
-            res.append(f"<span style='color: blue; text-decoration: underline;' title='빠뜨린 단어'>{word}</span>")
-        elif token.startswith('+ '):
-            # 잘못 추가/틀린 부분 (정답에는 없으나 입력에 있음) -> 빨간색 취소선
-            res.append(f"<span style='color: red; text-decoration: line-through;' title='틀린 단어'>{word}</span>")
-            
-    # 결과를 띄어쓰기로 연결하여 반환
-    html_str = " ".join(res)
-    return f'<div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; line-height: 1.6; font-size: 16px;">{html_str}</div>'
-
-st.markdown("""
-본문 전체를 4개의 파트로 나누었습니다. 각 파트의 한국어 해석을 보고 전체 영어 문단을 완성해 보세요.  
-* 💡 **채점 규칙**: 제출 후 단어 단위로 비교하여, **잘못 쓰거나 스펠링이 틀린 단어는 <span style='color:red; text-decoration:line-through;'>빨간색 취소선</span>**으로, **빼먹은 단어는 <span style='color:blue; text-decoration:underline;'>파란색 밑줄</span>**로 표시됩니다.
-""", unsafe_allow_html=True)
-
-st.divider()
-
-for i, item in enumerate(data):
-    st.subheader(f"📝 {item['part']}")
-    
-    # 한국어 해석 보여주기
-    st.info(item['korean'])
-    
-    # 사용자 입력 칸 (여러 줄 입력)
-    user_input = st.text_area(f"{item['part']} 영어로 작성:", key=f"input_{i}", height=150, placeholder="여기에 전체 영어 문단을 입력하세요...")
-    
-    if st.button(f"{item['part']} 채점하기", key=f"btn_{i}"):
-        if not user_input.strip():
-            st.warning("영작 내용을 먼저 입력해 주세요!")
-        else:
-            st.markdown("### 🔍 채점 결과")
-            diff_html = get_diff_html(item['english'], user_input)
-            st.markdown(diff_html, unsafe_allow_html=True)
-            
-            st.markdown("### ✅ 완벽한 정답")
-            st.success(item['english'])
-            
-    st.divider()
-
-import streamlit as st
-
-st.set_page_config(page_title="대학영어 워크북", layout="wide")
-
-# 사이드바에 페이지 이동 메뉴 생성
-page = st.sidebar.radio("원하는 단원을 선택하세요", ["UNIT 01 Virus", "UNIT 02 Ancient Egypt"])
-
-# 1페이지: Virus
-if page == "UNIT 01 Virus":
-    st.title("📖 UNIT 01 Virus")
-    # 기존 Virus 코드 배치
-
-# 2페이지: Ancient Egypt
-elif page == "UNIT 02 Ancient Egypt":
-    st.title("📖 UNIT 02 Ancient Egypt")
-    # Ancient Egypt 데이터 및 채점 코드 배치
-
-# UNIT 02 Ancient Egypt 데이터
 unit02_data = [
     {
         "part": "Part 1",
-        "korean": (
-            "고대 이집트는 기원전 3100년경에 일어난 인상적인 문명이었다. 기원전"
-            " 332년에 마케도니아인들이 장악할 때까지 고대 이집트는 북아프리카와"
-            " 인근 지역의 주요 강국으로 남아 있었다. 이 문명은 주로 나일강의"
-            " 홍수 패턴을 농업에 최대한 활용했기 때문에 번성했다. 예측 가능한"
-            " 홍수와 비옥한 계곡의 통제된 관개로 인해 잉여 농작물이"
-            " 생산되었고, 이로 인해 인구가 증가하고 사회는 더욱 복잡해질 수"
-            " 있었다. 이집트인들은 환경과 자원을 성공적으로 관리함으로써 예술,"
-            " 지식, 그리고 건축에서 풍성한 문화를 확립했으며 이는 이후 수 세기"
-            " 동안 세계에 영향을 미치게 되었다."
-        ),
-        "english": (
-            "Ancient Egypt was an impressive civilization that arose around"
-            " 3100 B.C.E. It remained a major power in North Africa and nearby"
-            " regions until the Macedonians took over in 332
+        "korean": "고대 이집트는 기원전 3100년경에 일어난 인상적인 문명이었다. 기원전 332년에 마케도니아인들이 장악할 때까지 고대 이집트는 북아프리카와 인근 지역의 주요 강국으로 남아 있었다. 이 문명은 주로 나일강의 홍수 패턴을 농업에 최대한 활용했기 때문에 번성했다. 예측 가능한 홍수와 비옥한 계곡의 통제된 관개로 인해 잉여 농작물이 생산되었고, 이로 인해 인구가 증가하고 사회는 더욱 복잡해질 수 있었다. 이집트인들은 환경과 자원을 성공적으로 관리함으로써 예술, 지식, 그리고 건축에서 풍성한 문화를 확립했으며 이는 이후 수 세기 동안 세계에 영향을 미치게 되었다.",
+        "english": "Ancient Egypt was an impressive civilization that arose around 3100 B.C.E. It remained a major power in North Africa and nearby regions until the Macedonians took over in 332 B.C.E. This civilization flourished largely because it made the most of the Nile River's flooding patterns for agriculture. Controlled irrigation of the predictable floods and fertile valley produced surplus crops, which allowed the population to grow and society to become more complex. By successfully managing their environment and resources, Egyptians established a rich culture in art, knowledge, and architecture that would influence the world for centuries to come."
+    }
+]
 
+# 4. 공통 UI 및 채점 렌더링 함수
+def render_unit(unit_title, unit_prefix, data_list):
+    st.title(f"📖 {unit_title}")
+    
+    st.markdown("""
+    본문 전체를 파트별로 나누었습니다. 각 파트의 한국어 해석을 보고 전체 영어 문단을 완성해 보세요.  
+    * 💡 **채점 규칙**: 제출 후 단어 단위로 비교하여, **잘못 쓰거나 스펠링이 틀린 단어는 <span style='color:red; text-decoration:line-through;'>빨간색 취소선</span>**으로, **빼먹은 단어는 <span style='color:blue; text-decoration:underline;'>파란색 밑줄</span>**로 표시됩니다.
+    """, unsafe_allow_html=True)
+
+    st.divider()
+
+    for i, item in enumerate(data_list):
+        st.subheader(f"📝 {item['part']}")
+        
+        # 한국어 해석 표시
+        st.info(item['korean'])
+        
+        # 고유 키(key)를 가진 입력 영역
+        user_input = st.text_area(
+            f"{item['part']} 영어로 작성:",
+            key=f"{unit_prefix}_input_{i}",
+            height=150,
+            placeholder="여기에 전체 영어 문단을 입력하세요..."
+        )
+        
+        # 채점 버튼
+        if st.button(f"{item['part']} 채점하기", key=f"{unit_prefix}_btn_{i}"):
+            if not user_input.strip():
+                st.warning("영작 내용을 먼저 입력해 주세요!")
+            else:
+                st.markdown("### 🔍 채점 결과")
+                diff_html = get_diff_html(item['english'], user_input)
+                st.markdown(diff_html, unsafe_allow_html=True)
+                
+                st.markdown("### ✅ 완벽한 정답")
+                st.success(item['english'])
+                
+        st.divider()
+
+# 5. 사이드바 메뉴 및 페이지 전환
+page = st.sidebar.radio("원하는 단원을 선택하세요", ["UNIT 01 Virus", "UNIT 02 Ancient Egypt"])
+
+if page == "UNIT 01 Virus":
+    render_unit("UNIT 01 Virus", "u1", unit01_data)
+elif page == "UNIT 02 Ancient Egypt":
+    render_unit("UNIT 02 Ancient Egypt", "u2", unit02_data)
