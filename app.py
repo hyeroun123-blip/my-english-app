@@ -26,8 +26,6 @@ def get_diff_html(correct, user):
     return f'<div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; line-height: 1.6; font-size: 16px;">{html_str}</div>'
 
 # 3. 데이터 정의
-
-# [PAGE 1 데이터] UNIT 01 Virus
 unit01_data = [
     {
         "part": "Part 1",
@@ -51,7 +49,6 @@ unit01_data = [
     }
 ]
 
-# [PAGE 2 데이터] UNIT 02 Ancient Egypt (추가 파트가 생기면 이곳에 계속 추가)
 unit02_data = [
     {
         "part": "Part 1",
@@ -95,7 +92,11 @@ def render_unit(unit_title, unit_prefix, data_list):
                 
         st.divider()
 
-# 5. 페이지 이동 관리 logic
+# 5. 페이지 변경 콜백 함수
+def set_page(page_name):
+    st.session_state.current_page = page_name
+
+# 초기 페이지 설정
 if "current_page" not in st.session_state:
     st.session_state.current_page = "UNIT 01 Virus"
 
@@ -105,19 +106,11 @@ page = st.sidebar.radio(
     key="current_page"
 )
 
-# 선택된 페이지에 따라 데이터 분기 출력
+# 페이지 출력 및 콜백 버튼 매핑
 if page == "UNIT 01 Virus":
     render_unit("UNIT 01 Virus", "u1", unit01_data)
-    
-    # 페이지 맨 밑 다음 버튼
-    if st.button("➡️ 다음 단원으로 이동 (UNIT 02)"):
-        st.session_state.current_page = "UNIT 02 Ancient Egypt"
-        st.rerun()
+    st.button("➡️ 다음 단원으로 이동 (UNIT 02)", on_click=set_page, args=("UNIT 02 Ancient Egypt",))
 
 elif page == "UNIT 02 Ancient Egypt":
     render_unit("UNIT 02 Ancient Egypt", "u2", unit02_data)
-    
-    # 페이지 맨 밑 이전 버튼
-    if st.button("⬅️ 이전 단원으로 이동 (UNIT 01)"):
-        st.session_state.current_page = "UNIT 01 Virus"
-        st.rerun()
+    st.button("⬅️ 이전 단원으로 이동 (UNIT 01)", on_click=set_page, args=("UNIT 01 Virus",))
