@@ -248,7 +248,8 @@ unit02_data = [
             " of the deceased."
             "In the ethos of Ancient Egypt, death on the earth was the start"
             "of a journey to the next world."
-
+        ),
+    },
  {
         "part": "Part 4",
         "korean": (
