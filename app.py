@@ -245,4 +245,128 @@ unit02_data = [
             " their mummified forms. The meticulous preservation of the"
             " pharaoh’s body was crucial for enabling the departed ruler to"
             " adhere to his responsibilities in the afterlife as the monarch"
-            " of the deceased.\nIn the ethos of Ancient Egypt, death on the earth
+            " of the deceased.\nIn the ethos of Ancient Egypt, death on the earth was the start"
+            " of a journey to the next world."
+        ),
+    },
+    {
+        "part": "Part 4",
+        "korean": (
+            "고대 이집트의 종교는 다신교 교리와 의식 활동의 복잡한 네트워크였으며,"
+            " 그 사회의 구조 내에서 중추적인 역할을 했다. 신전에는 1,500여 개의 신이 있었고"
+            " 그 각각은 경배와 숭배를 명했다. 파라오는 신의 영역에 참여함으로써 세속과"
+            " 신성을 연결하는 독특한 위치를 차지했고, 자신의 내세를 위해 종교적 동기를 지닌"
+            " 거대한 장례 기념물을 건설했다. 파라오는 우주의 질서인 마아트를 유지하고"
+            " 혼돈인 이스페트를 물리치기 위해, 의식과 제물을 통해 신들의 자비를 유지해야 할"
+            " 의무가 있었다. 다채로운 모습으로 유명한 이집트의 신들은 다양한 형상을 취했는데,"
+            " 이 중에는 동물의 형상, 혹은 인간의 몸에 동물의 머리를 한 복합적인 존재도 포함되어 있었다."
+        ),
+        "english": (
+            "The religion of ancient Egypt was an intricate network of"
+            " polytheistic doctrines and ceremonial activities, playing a pivotal role"
+            " within the fabric of its society. The pantheon comprised approximately"
+            " 1,500 divinities, each commanding reverence and worship."
+            " The pharaoh occupied a distinct position, bridging the mundane"
+            " and the divine, participating in the divine realm, and constructed great,"
+            " religiously motivated funerary monuments for his afterlife."
+            " Pharaohs were obligated to retain the benevolence of the gods through rituals"
+            " and offerings so that they could maintain Ma'at, the order of the cosmos,"
+            " and repel Isfet, which was chaos. Notable for their diverse representations,"
+            " Egyptian deities assumed various forms, including those of animals"
+            " or composite beings with an animal's head atop a human frame."
+        ),
+    },
+]
+
+# 3단원(Fear) 데이터 예시 (필요에 맞게 수정하여 사용하세요)
+unit03_data = [
+    {
+        "part": "Part 1",
+        "korean": (
+            "두렵다는 감정은 인간의 생존에 필수적인 반응이다. 위험을 감지하고"
+            " 회피할 수 있도록 돕기 때문이다."
+        ),
+        "english": (
+            "The emotion of fear is an essential reaction for human survival,"
+            " as it helps us detect and avoid danger."
+        ),
+    },
+]
+
+
+# 4. 공통 렌더링 함수
+def render_unit(unit_title, unit_prefix, data_list):
+    st.title(f"📖 {unit_title}")
+
+    st.markdown(
+        """
+    본문 전체를 파트별로 나누었습니다. 각 파트의 한국어 해석을 보고 전체 영어 문단을 완성해 보세요.  
+    * 💡 **채점 규칙**: 제출 후 단어 단위로 비교하여, **잘못 쓰거나 스펠링이 틀린 단어는 <span style='color:red; text-decoration:line-through;'>빨간색 취소선</span>**으로, **빼먹은 단어는 <span style='color:blue; text-decoration:underline;'>파란색 밑줄</span>**로 표시됩니다.
+    """,
+        unsafe_allow_html=True,
+    )
+
+    st.divider()
+
+    for i, item in enumerate(data_list):
+        st.subheader(f"📝 {item['part']}")
+        st.info(item["korean"])
+
+        user_input = st.text_area(
+            f"{item['part']} 영어로 작성:",
+            key=f"{unit_prefix}_input_{i}",
+            height=150,
+            placeholder="여기에 전체 영어 문단을 입력하세요...",
+        )
+
+        if st.button(
+            f"{item['part']} 채점하기", key=f"{unit_prefix}_btn_{i}"
+        ):
+            if not user_input.strip():
+                st.warning("영작 내용을 먼저 입력해 주세요!")
+            else:
+                st.markdown("### 🔍 채점 결과")
+                diff_html = get_diff_html(item["english"], user_input)
+                st.markdown(diff_html, unsafe_allow_html=True)
+
+                st.markdown("### ✅ 완벽한 정답")
+                st.success(item["english"])
+
+        st.divider()
+
+
+# 5. 페이지 변경 처리 (세션 상태 초기화)
+if "selected_page" not in st.session_state:
+    st.session_state.selected_page = "UNIT 01 Virus"
+
+# 사이드바 라디오 버튼 생성 (key를 통해 session_state와 직접 연동)
+pages = ["UNIT 01 Virus", "UNIT 02 Ancient Egypt", "UNIT 03 Fear"]
+
+selected_page = st.sidebar.radio(
+    "원하는 단원을 선택하세요", pages, key="selected_page"
+)
+
+# 페이지 출력 및 이동 버튼 매핑
+if selected_page == "UNIT 01 Virus":
+    render_unit("UNIT 01 Virus", "u1", unit01_data)
+    if st.button("➡️ 다음 단원으로 이동 (UNIT 02)"):
+        st.session_state.selected_page = "UNIT 02 Ancient Egypt"
+        st.rerun()
+
+elif selected_page == "UNIT 02 Ancient Egypt":
+    render_unit("UNIT 02 Ancient Egypt", "u2", unit02_data)
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("⬅️ 이전 단원으로 이동 (UNIT 01)"):
+            st.session_state.selected_page = "UNIT 01 Virus"
+            st.rerun()
+    with col2:
+        if st.button("➡️ 다음 단원으로 이동 (UNIT 03)"):
+            st.session_state.selected_page = "UNIT 03 Fear"
+            st.rerun()
+
+elif selected_page == "UNIT 03 Fear":
+    render_unit("UNIT 03 Fear", "u3", unit03_data)
+    if st.button("⬅️ 이전 단원으로 이동 (UNIT 02)"):
+        st.session_state.selected_page = "UNIT 02 Ancient Egypt"
+        st.rerun()
