@@ -1,3 +1,4 @@
+Python
 import difflib
 import re
 import streamlit as st
@@ -278,7 +279,6 @@ unit02_data = [
     },
 ]
 
-# 3단원(Fear) 데이터 예시 (필요에 맞게 수정하여 사용하세요)
 unit03_data = [
     {
         "part": "Part 1",
@@ -335,25 +335,33 @@ def render_unit(unit_title, unit_prefix, data_list):
         st.divider()
 
 
-# 5. 페이지 변경 처리 (세션 상태 초기화)
+# 5. 페이지 변경 처리 (세션 상태 초기화 및 안전한 라디오 제어)
 if "selected_page" not in st.session_state:
     st.session_state.selected_page = "UNIT 01 Virus"
 
-# 사이드바 라디오 버튼 생성 (key를 통해 session_state와 직접 연동)
 pages = ["UNIT 01 Virus", "UNIT 02 Ancient Egypt", "UNIT 03 Fear"]
 
-selected_page = st.sidebar.radio(
-    "원하는 단원을 선택하세요", pages, key="selected_page"
+# 라디오 버튼의 key를 'nav_radio'로 지정하여 내부 상태 충돌을 원천 차단합니다.
+page_selection = st.sidebar.radio(
+    "원하는 단원을 선택하세요",
+    pages,
+    index=pages.index(st.session_state.selected_page),
+    key="nav_radio",
 )
 
+# 라디오로 직접 페이지를 바꿨을 때 세션 상태 동기화
+if page_selection != st.session_state.selected_page:
+    st.session_state.selected_page = page_selection
+    st.rerun()
+
 # 페이지 출력 및 이동 버튼 매핑
-if selected_page == "UNIT 01 Virus":
+if st.session_state.selected_page == "UNIT 01 Virus":
     render_unit("UNIT 01 Virus", "u1", unit01_data)
     if st.button("➡️ 다음 단원으로 이동 (UNIT 02)"):
         st.session_state.selected_page = "UNIT 02 Ancient Egypt"
         st.rerun()
 
-elif selected_page == "UNIT 02 Ancient Egypt":
+elif st.session_state.selected_page == "UNIT 02 Ancient Egypt":
     render_unit("UNIT 02 Ancient Egypt", "u2", unit02_data)
     col1, col2 = st.columns(2)
     with col1:
@@ -365,7 +373,7 @@ elif selected_page == "UNIT 02 Ancient Egypt":
             st.session_state.selected_page = "UNIT 03 Fear"
             st.rerun()
 
-elif selected_page == "UNIT 03 Fear":
+elif st.session_state.selected_page == "UNIT 03 Fear":
     render_unit("UNIT 03 Fear", "u3", unit03_data)
     if st.button("⬅️ 이전 단원으로 이동 (UNIT 02)"):
         st.session_state.selected_page = "UNIT 02 Ancient Egypt"
