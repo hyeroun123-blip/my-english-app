@@ -293,9 +293,31 @@ unit03_data = [
 ]
 
 
-# 4. 공통 렌더링 함수
-def render_unit(unit_title, unit_prefix, data_list):
+# 4. 이전/다음 단원 이동 버튼
+def nav_buttons(idx, position):
+    col1, col2, col3 = st.columns([1, 3, 1])
+    with col1:
+        if idx > 0:
+            if st.button(
+                "⬅️ 이전 단원",
+                key=f"prev_{position}_{idx}",
+                use_container_width=True,
+            ):
+                st.switch_page(pages[idx - 1])
+    with col3:
+        if idx < len(pages) - 1:
+            if st.button(
+                "다음 단원 ➡️",
+                key=f"next_{position}_{idx}",
+                use_container_width=True,
+            ):
+                st.switch_page(pages[idx + 1])
+
+
+# 5. 공통 렌더링 함수
+def render_unit(unit_title, unit_prefix, data_list, idx):
     st.title(f"📖 {unit_title}")
+    nav_buttons(idx, "top")
 
     st.markdown(
         """
@@ -333,47 +355,28 @@ def render_unit(unit_title, unit_prefix, data_list):
 
         st.divider()
 
+    nav_buttons(idx, "bottom")
 
-# 5. 페이지 변경 처리 (세션 상태 초기화 및 안전한 라디오 제어)
-if "selected_page" not in st.session_state:
-    st.session_state.selected_page = "UNIT 01 Virus"
 
-pages = ["UNIT 01 Virus", "UNIT 02 Ancient Egypt", "UNIT 03 Fear"]
+# 6. 각 페이지 함수 정의
+def page_unit1():
+    render_unit("UNIT 01 Virus", "u1", unit01_data, 0)
 
-# 라디오 버튼의 key를 'nav_radio'로 지정하여 내부 상태 충돌을 원천 차단합니다.
-page_selection = st.sidebar.radio(
-    "원하는 단원을 선택하세요",
-    pages,
-    index=pages.index(st.session_state.selected_page),
-    key="nav_radio",
-)
 
-# 라디오로 직접 페이지를 바꿨을 때 세션 상태 동기화
-if page_selection != st.session_state.selected_page:
-    st.session_state.selected_page = page_selection
-    st.rerun()
+def page_unit2():
+    render_unit("UNIT 02 Ancient Egypt", "u2", unit02_data, 1)
 
-# 페이지 출력 및 이동 버튼 매핑
-if st.session_state.selected_page == "UNIT 01 Virus":
-    render_unit("UNIT 01 Virus", "u1", unit01_data)
-    if st.button("➡️ 다음 단원으로 이동 (UNIT 02)"):
-        st.session_state.selected_page = "UNIT 02 Ancient Egypt"
-        st.rerun()
 
-elif st.session_state.selected_page == "UNIT 02 Ancient Egypt":
-    render_unit("UNIT 02 Ancient Egypt", "u2", unit02_data)
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("⬅️ 이전 단원으로 이동 (UNIT 01)"):
-            st.session_state.selected_page = "UNIT 01 Virus"
-            st.rerun()
-    with col2:
-        if st.button("➡️ 다음 단원으로 이동 (UNIT 03)"):
-            st.session_state.selected_page = "UNIT 03 Fear"
-            st.rerun()
+def page_unit3():
+    render_unit("UNIT 03 Fear", "u3", unit03_data, 2)
 
-elif st.session_state.selected_page == "UNIT 03 Fear":
-    render_unit("UNIT 03 Fear", "u3", unit03_data)
-    if st.button("⬅️ 이전 단원으로 이동 (UNIT 02)"):
-        st.session_state.selected_page = "UNIT 02 Ancient Egypt"
-        st.rerun()
+
+# 7. Streamlit 공식 네비게이션 설정
+pages = [
+    st.Page(page_unit1, title="UNIT 01 Virus", url_path="unit01", default=True),
+    st.Page(page_unit2, title="UNIT 02 Ancient Egypt", url_path="unit02"),
+    st.Page(page_unit3, title="UNIT 03 Fear", url_path="unit03"),
+]
+
+pg = st.navigation(pages)
+pg.run()
